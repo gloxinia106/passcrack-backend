@@ -1,8 +1,25 @@
 from name_that_hash import runner
 import hashlib
+from itertools import product,permutations
+from utills import hangul2roman
 
-def make_dic():
-    pass
+def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_number):
+    full_name = firt_name + last_name
+    names = [ hangul2roman(firt_name), hangul2roman(last_name), hangul2roman(full_name)]
+    special_characters = ["!","@","#"]
+    splited_phone = phone_number.split("-")
+    others = [birth_year, birth_month, birth_day, splited_phone[1],splited_phone[2]]
+    file = open("dic/custom_dic.txt","w")
+
+    for combination in product(names,others):
+        for permutation in permutations(combination):
+            file.write("".join(permutation) + "\n")
+    
+    for combination in product(names,others,special_characters):
+        for permutation in permutations(combination):
+            file.write("".join(permutation) + "\n")
+
+    file.close()
 
 def crack_password(password, mode):
     hash_names = runner.api_return_hashes_as_dict([password],{"popular_only": True})
