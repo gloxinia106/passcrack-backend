@@ -24,14 +24,13 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
 def crack_password(password, mode):
     hash_names = runner.api_return_hashes_as_dict([password],{"popular_only": True})
     hash_name = hash_names.get(password)[0].get("name")
-    cracked_passwords = []
+    cracked_password = {}
 
     if(mode == "english"):
         file = open("dic/en_dic.txt","r")
     elif(mode == "korean"):
         file = open("dic/en_dic.txt","r")
     elif(mode == "custom"):
-        make_dic()
         file = open("dic/custom_dic.txt","r")
     
     for line in file:
@@ -46,10 +45,10 @@ def crack_password(password, mode):
             hashed_text = hashlib.md5(text.encode()).hexdigest()
         
         if(hashed_text == password):
-            cracked_passwords.append({ "password":text,"hash":hashed_text })
+            cracked_password = { "password":text,"hash":hashed_text }
     
-    if(cracked_passwords != []):
-        return {"ok":True,"passwords":cracked_passwords}
+    if(cracked_password != {}):
+        return {"ok":True,"password":cracked_password}
     else:
         return {"ok":False,"error":"password not found"}
 
