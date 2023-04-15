@@ -1,5 +1,5 @@
 from flask import Flask,request
-from crack import crack_password, make_dic
+from crack import crack_password, make_dic, bruteforce_attack
 import json
 
 app = Flask("passcrack_backend")
@@ -38,6 +38,22 @@ def crack_file():
             hashed_password = line.decode("utf-8").strip()
             password = crack_password(hashed_password,mode)
             passwords.append(password)
+        return {"ok":True,"passwords":passwords}
+    else:
+        return "GET"
+
+@app.route("/api/bruteforce", methods=["GET",'POST'])
+def bruteforce():
+    if(request.method == "POST"):
+        passwords = []
+        result = request.get_json()
+        hashed_passwords = result["values"]
+        for hashed_password in hashed_passwords:
+            result_password = bruteforce_attack(hashed_password)
+            if(result_password["ok"]):
+                passwords.append(result_password["password"])
+            else:
+                passwords.append(result_password["error"])
         return {"ok":True,"passwords":passwords}
     else:
         return "GET"
