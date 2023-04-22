@@ -1,13 +1,13 @@
 from name_that_hash import runner
 import hashlib
 from itertools import product, permutations
-from utills import hangul2roman
+from utills import kor_to_eng
 
 
 def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_number):
     full_name = firt_name + last_name
-    names = [hangul2roman(firt_name), hangul2roman(
-        last_name), hangul2roman(full_name)]
+    names = [kor_to_eng(firt_name), kor_to_eng(
+        last_name), kor_to_eng(full_name)]
     special_characters = ["!", "@", "#"]
     splited_phone = phone_number.split("-")
     others = [birth_year, birth_month, birth_day,
@@ -28,13 +28,16 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
 def crack_password(password, mode):
     hash_names = runner.api_return_hashes_as_dict(
         [password], {"popular_only": True})
-    hash_name = hash_names.get(password)[0].get("name")
-    cracked_password = {}
+    if (hash_names.get(password)):
+        hash_name = hash_names.get(password)[0].get("name")
+    else:
+        hash_name = ""
+    result = {}
 
     if (mode == "english"):
         file = open("dic/en_dic.txt", "r")
     elif (mode == "korean"):
-        file = open("dic/en_dic.txt", "r")
+        file = open("dic/ko_dic.txt", "r")
     elif (mode == "custom"):
         file = open("dic/custom_dic.txt", "r")
 
@@ -48,15 +51,17 @@ def crack_password(password, mode):
             hashed_text = hashlib.sha512(text.encode()).hexdigest()
         elif (hash_name == "MD5"):
             hashed_text = hashlib.md5(text.encode()).hexdigest()
+        else:
+            hashed_text = None
 
         if (hashed_text == password):
-            cracked_password = {"password": text, "hash": hashed_text}
+            result = {"ok": True, "password": text, "hash": hashed_text}
             break
 
-    if (cracked_password != {}):
-        return {"ok": True, "password": cracked_password}
+    if (result != {}):
+        return result
     else:
-        return {"ok": False, "error": "password not found"}
+        return {"ok": False, "hash": password, "error": "password not found"}
 
 
 def bruteforce_attack(password):
@@ -69,6 +74,7 @@ def bruteforce_attack(password):
         for letter in product(chars, repeat=i):
             attempts += 1
             letter = ''.join(letter)
+            print(letter)
             if (hash_name == "SHA-1"):
                 hashed_text = hashlib.sha1(letter.encode()).hexdigest()
             elif (hash_name == "SHA-256"):
@@ -78,4 +84,4 @@ def bruteforce_attack(password):
             elif (hash_name == "MD5"):
                 hashed_text = hashlib.md5(letter.encode()).hexdigest()
             if hashed_text == password:
-                return {"ok": True, "password": letter}
+                return {"ok": True, "password": letter, "hash": password}
