@@ -1,8 +1,11 @@
 from flask import Flask, request
 from crack import crack_password, make_dic, bruteforce_attack
+from flask_cors import CORS
 import json
 
 app = Flask("passcrack_backend")
+CORS(app, resources={
+     r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
 
 @app.route("/api/text-crack", methods=["GET", 'POST'])

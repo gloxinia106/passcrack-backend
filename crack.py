@@ -35,14 +35,15 @@ def crack_password(password, mode):
     result = {}
 
     if (mode == "english"):
-        file = open("dic/en_dic.txt", "r")
+        file = open("dic/en_dic.txt", "r", encoding="UTF8")
     elif (mode == "korean"):
-        file = open("dic/ko_dic.txt", "r")
+        file = open("dic/ko_dic.txt", "r", encoding="UTF8")
     elif (mode == "custom"):
-        file = open("dic/custom_dic.txt", "r")
+        file = open("dic/custom_dic.txt", "r", encoding="UTF8")
 
     for line in file:
         text = line.strip()
+        text = kor_to_eng(text)
         if (hash_name == "SHA-1"):
             hashed_text = hashlib.sha1(text.encode()).hexdigest()
         elif (hash_name == "SHA-256"):
@@ -74,7 +75,6 @@ def bruteforce_attack(password):
         for letter in product(chars, repeat=i):
             attempts += 1
             letter = ''.join(letter)
-            print(letter)
             if (hash_name == "SHA-1"):
                 hashed_text = hashlib.sha1(letter.encode()).hexdigest()
             elif (hash_name == "SHA-256"):
