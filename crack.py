@@ -2,6 +2,7 @@ from name_that_hash import runner
 import hashlib
 from itertools import product, permutations
 from utills import kor_to_eng
+import pickle
 
 
 def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_number):
@@ -35,34 +36,39 @@ def crack_password(password, mode):
     result = {}
 
     if (mode == "english"):
-        file = open("dic/en_dic.txt", "r", encoding="UTF8")
+        file = open(f"dic/hash/en_{hash_name}.pkl", "rb")
     elif (mode == "korean"):
-        file = open("dic/ko_dic.txt", "r", encoding="UTF8")
+        file = open(f"dic/hahs/ko_{hash_name}.pkl", "rb")
     elif (mode == "custom"):
         file = open("dic/custom_dic.txt", "r", encoding="UTF8")
 
-    for line in file:
-        text = line.strip()
-        text = kor_to_eng(text)
-        if (hash_name == "SHA-1"):
-            hashed_text = hashlib.sha1(text.encode()).hexdigest()
-        elif (hash_name == "SHA-256"):
-            hashed_text = hashlib.sha256(text.encode()).hexdigest()
-        elif (hash_name == "SHA-512"):
-            hashed_text = hashlib.sha512(text.encode()).hexdigest()
-        elif (hash_name == "MD5"):
-            hashed_text = hashlib.md5(text.encode()).hexdigest()
-        else:
-            hashed_text = None
+    if (mode == "custom"):
+        for line in file:
+            text = line.strip()
+            text = kor_to_eng(text)
+            if (hash_name == "SHA-1"):
+                hashed_text = hashlib.sha1(text.encode()).hexdigest()
+            elif (hash_name == "SHA-256"):
+                hashed_text = hashlib.sha256(text.encode()).hexdigest()
+            elif (hash_name == "SHA-512"):
+                hashed_text = hashlib.sha512(text.encode()).hexdigest()
+            elif (hash_name == "MD5"):
+                hashed_text = hashlib.md5(text.encode()).hexdigest()
+            else:
+                hashed_text = None
 
-        if (hashed_text == password):
-            result = {"ok": True, "password": text, "hash": hashed_text}
-            break
+            if (hashed_text == password):
+                return {"ok": True, "password": text, "hash": hashed_text}
 
-    if (result != {}):
-        return result
-    else:
         return {"ok": False, "hash": password, "error": "password not found"}
+
+    else:
+        loaded_dict = pickle.load(file)
+        try:
+            crached_text = loaded_dict[password]
+            return {"ok": True, "password": crached_text, "hash": password}
+        except:
+            return {"ok": False, "hash": password, "error": "password not found"}
 
 
 def bruteforce_attack(password):
