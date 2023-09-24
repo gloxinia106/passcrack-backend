@@ -26,6 +26,10 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
     file.close()
 
 
+def crack_salt(password, hash_name, salt, mode):
+    pass
+
+
 def crack_password(password, mode):
     hash_names = runner.api_return_hashes_as_dict(
         [password], {"popular_only": True})
@@ -33,7 +37,6 @@ def crack_password(password, mode):
         hash_name = hash_names.get(password)[0].get("name")
     else:
         hash_name = ""
-    result = {}
 
     if (mode == "english"):
         file = open(f"dic/hash/en_{hash_name}.pkl", "rb")

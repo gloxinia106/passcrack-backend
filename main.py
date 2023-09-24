@@ -1,5 +1,6 @@
 from flask import Flask, request
-from crack import crack_password, make_dic, bruteforce_attack
+from crack import crack_password, make_dic, bruteforce_attack, crack_salt
+from utills import is_salt_password_match
 from flask_cors import CORS
 import json
 
@@ -20,7 +21,12 @@ def crack_text():
             make_dic(person["first_name"], person["last_name"], person["birth_year"],
                      person["birth_month"], person["birth_day"], person["phone_number"])
         for hashed_password in hashed_passwords:
-            result = crack_password(hashed_password, mode)
+            is_salt_obj = is_salt_password_match(hashed_password)
+            if (is_salt_obj["is_salt"]):
+                result = crack_salt(
+                    hashed_password, is_salt_obj["hash_name"], is_salt_obj["hash_salt"], mode)
+            else:
+                result = crack_password(hashed_password, mode)
             passwords.append(result)
         return {"ok": True, "passwords": passwords}
     else:
@@ -40,7 +46,12 @@ def crack_file():
                      json_data["birth_month"], json_data["birth_day"], json_data["phone_number"])
         for line in file:
             hashed_password = line.decode("utf-8").strip()
-            result = crack_password(hashed_password, mode)
+            is_salt_obj = is_salt_password_match(hashed_password)
+            if (is_salt_obj["is_salt"]):
+                result = crack_salt(
+                    hashed_password, is_salt_obj["hash_name"], is_salt_obj["hash_salt"], mode)
+            else:
+                result = crack_password(hashed_password, mode)
             passwords.append(result)
         return {"ok": True, "passwords": passwords}
     else:
