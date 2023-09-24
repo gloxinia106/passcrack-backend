@@ -3,6 +3,7 @@ import hashlib
 from itertools import product, permutations
 from utills import kor_to_eng
 import pickle
+from passlib.hash import sha256_crypt, sha1_crypt, sha512_crypt, md5_crypt
 
 
 def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_number):
@@ -27,7 +28,36 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
 
 
 def crack_salt(password, hash_name, salt, mode):
-    pass
+    if (mode == "english"):
+        file = open(f"dic/en_dic.txt", "r", encoding="UTF8")
+    elif (mode == "korean"):
+        file = open(f"dic/ko_dic.txt", "r", encoding="UTF8")
+    elif (mode == "custom"):
+        file = open("dic/custom_dic.txt", "r", encoding="UTF8")
+
+    result = {}
+
+    for line in file:
+        text = line.strip()
+        text = kor_to_eng(text)
+        if (hash_name == "SHA-1"):
+            hashed_text = sha1_crypt.using(rounds=5000, salt=salt).hash(text)
+        elif (hash_name == "SHA-256"):
+            hashed_text = sha256_crypt.using(rounds=5000, salt=salt).hash(text)
+        elif (hash_name == "SHA-512"):
+            hashed_text = sha512_crypt.using(rounds=5000, salt=salt).hash(text)
+        elif (hash_name == "MD5"):
+            hashed_text = md5_crypt.using(rounds=5000, salt=salt).hash(text)
+        else:
+            hashed_text = None
+
+        if (hashed_text == password):
+            result = {"ok": True, "password": text, "hash": hashed_text}
+            break
+    if (result != {}):
+        return result
+    else:
+        return {"ok": False, "hash": password, "error": "password not found"}
 
 
 def crack_password(password, mode):
@@ -41,11 +71,12 @@ def crack_password(password, mode):
     if (mode == "english"):
         file = open(f"dic/hash/en_{hash_name}.pkl", "rb")
     elif (mode == "korean"):
-        file = open(f"dic/hahs/ko_{hash_name}.pkl", "rb")
+        file = open(f"dic/hash/ko_{hash_name}.pkl", "rb")
     elif (mode == "custom"):
         file = open("dic/custom_dic.txt", "r", encoding="UTF8")
 
     if (mode == "custom"):
+        result = {}
         for line in file:
             text = line.strip()
             text = kor_to_eng(text)
@@ -61,9 +92,13 @@ def crack_password(password, mode):
                 hashed_text = None
 
             if (hashed_text == password):
-                return {"ok": True, "password": text, "hash": hashed_text}
+                result = {"ok": True, "password": text, "hash": hashed_text}
+                break
 
-        return {"ok": False, "hash": password, "error": "password not found"}
+        if (result != {}):
+            return result
+        else:
+            return {"ok": False, "hash": password, "error": "password not found"}
 
     else:
         loaded_dict = pickle.load(file)

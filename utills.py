@@ -36,4 +36,4 @@ def is_salt_password_match(password):
         hash_salt = password_arr[2]
         return {"is_salt": True, "hash_name": hash_name, "hash_salt": hash_salt}
     else:
-        return {"is_linux": False}
+        return {"is_salt": False}
