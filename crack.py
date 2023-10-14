@@ -66,7 +66,7 @@ def crack_password(password, mode):
     if (hash_names.get(password)):
         hash_name = hash_names.get(password)[0].get("name")
     else:
-        hash_name = ""
+        hash_name = "MD5"
 
     if (mode == "english"):
         file = open(f"dic/hash/en_{hash_name}.pkl", "rb")
