@@ -6,6 +6,18 @@ import pickle
 from passlib.hash import sha256_crypt, sha1_crypt, sha512_crypt, md5_crypt
 
 
+def hash(password, hash_name):
+    if (hash_name == "SHA-1"):
+        hashed_text = hashlib.sha1(password.encode()).hexdigest()
+    elif (hash_name == "SHA-256"):
+        hashed_text = hashlib.sha256(password.encode()).hexdigest()
+    elif (hash_name == "SHA-512"):
+        hashed_text = hashlib.sha512(password.encode()).hexdigest()
+    elif (hash_name == "MD5"):
+        hashed_text = hashlib.md5(password.encode()).hexdigest()
+    return hashed_text
+
+
 def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_number):
     full_name = firt_name + last_name
     names = [kor_to_eng(firt_name), kor_to_eng(
@@ -15,7 +27,6 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
     others = [birth_year, birth_month, birth_day,
               splited_phone[1], splited_phone[2]]
     file = open("dic/custom_dic.txt", "w")
-
     for combination in product(names, others):
         for permutation in permutations(combination):
             file.write("".join(permutation) + "\n")
@@ -25,6 +36,19 @@ def make_dic(firt_name, last_name, birth_year, birth_month, birth_day, phone_num
             file.write("".join(permutation) + "\n")
 
     file.close()
+    for hash_name in ["SHA-1", "SHA-256", "SHA-512", "MD5"]:
+        with open(f"dic/hash/custom_{hash_name}.pkl", 'wb') as f:
+            hash_table = {}
+            for combination in product(names, others):
+                for permutation in permutations(combination):
+                    hashed_text = hash("".join(permutation), hash_name)
+                    hash_table[hashed_text] = "".join(permutation)
+
+            for combination in product(names, others, special_characters):
+                for permutation in permutations(combination):
+                    hashed_text = hash("".join(permutation), hash_name)
+                    hash_table[hashed_text] = "".join(permutation)
+            pickle.dump(hash_table, f)
 
 
 def crack_salt(password, hash_name, salt, mode):
@@ -73,40 +97,14 @@ def crack_password(password, mode):
     elif (mode == "korean"):
         file = open(f"dic/hash/ko_{hash_name}.pkl", "rb")
     elif (mode == "custom"):
-        file = open("dic/custom_dic.txt", "r", encoding="UTF8")
+        file = open(f"dic/hash/custom_{hash_name}.pkl", "rb")
 
-    if (mode == "custom"):
-        result = {}
-        for line in file:
-            text = line.strip()
-            text = kor_to_eng(text)
-            if (hash_name == "SHA-1"):
-                hashed_text = hashlib.sha1(text.encode()).hexdigest()
-            elif (hash_name == "SHA-256"):
-                hashed_text = hashlib.sha256(text.encode()).hexdigest()
-            elif (hash_name == "SHA-512"):
-                hashed_text = hashlib.sha512(text.encode()).hexdigest()
-            elif (hash_name == "MD5"):
-                hashed_text = hashlib.md5(text.encode()).hexdigest()
-            else:
-                hashed_text = None
-
-            if (hashed_text == password):
-                result = {"ok": True, "password": text, "hash": hashed_text}
-                break
-
-        if (result != {}):
-            return result
-        else:
-            return {"ok": False, "hash": password, "error": "password not found"}
-
-    else:
-        loaded_dict = pickle.load(file)
-        try:
-            crached_text = loaded_dict[password]
-            return {"ok": True, "password": crached_text, "hash": password}
-        except:
-            return {"ok": False, "hash": password, "error": "password not found"}
+    loaded_dict = pickle.load(file)
+    try:
+        crached_text = loaded_dict[password]
+        return {"ok": True, "password": crached_text, "hash": password}
+    except:
+        return {"ok": False, "hash": password, "error": "password not found"}
 
 
 def bruteforce_attack(password):
