@@ -12,23 +12,20 @@ CORS(app, resources={
 @app.route("/api/text-crack", methods=["GET", 'POST'])
 def crack_text():
     if (request.method == "POST"):
-        passwords = []
         result_json = request.get_json()
-        hashed_passwords = result_json["values"]
+        hashed_password = result_json["value"]
         mode = result_json["mode"]
         if (mode == "custom"):
             person = result_json["person"]
             make_dic(person["first_name"], person["last_name"], person["birth_year"],
                      person["birth_month"], person["birth_day"], person["phone_number"])
-        for hashed_password in hashed_passwords:
-            is_salt_obj = is_salt_password_match(hashed_password)
-            if (is_salt_obj["is_salt"]):
-                result = crack_salt(
-                    hashed_password, is_salt_obj["hash_name"], is_salt_obj["hash_salt"], mode)
-            else:
-                result = crack_password(hashed_password, mode)
-            passwords.append(result)
-        return {"ok": True, "passwords": passwords}
+        is_salt_obj = is_salt_password_match(hashed_password)
+        if (is_salt_obj["is_salt"]):
+            result = crack_salt(
+                hashed_password, is_salt_obj["hash_name"], is_salt_obj["hash_salt"], mode)
+        else:
+            result = crack_password(hashed_password, mode)
+        return result
     else:
         return "404 not Found"
 
